@@ -1,0 +1,62 @@
+name: Forest Reels 2x/day
+on:
+  schedule:
+    - cron: '0 5 * * *'    # 12:00 เวลาไทย
+    - cron: '0 12 * * *'   # 19:00 เวลาไทย
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'story_only = ทดสอบเรื่อง (ฟรี) | video_only = สร้างคลิปไม่โพสต์ | post = โพสต์จริง'
+        type: choice
+        default: story_only
+        options: [story_only, video_only, post]
+      slot:
+        description: 'รอบ'
+        type: choice
+        default: noon
+        options: [noon, evening]
+
+concurrency:
+  group: forest-reels
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-thai-tlwg
+          pip install -r requirements.txt
+      - name: Run pipeline
+        env:
+          SLOT: ${{ inputs.slot || (github.event.schedule == '0 5 * * *' && 'noon' || 'evening') }}
+          MODE: ${{ inputs.mode || 'post' }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID || '1442748642259773' }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+          TIKTOK_PRIVACY: ${{ vars.TIKTOK_PRIVACY || 'SELF_ONLY' }}
+          YT_PRIVACY: ${{ vars.YT_PRIVACY || 'public' }}
+        run: python run.py
+      - name: Keep the clip for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reel-${{ github.run_id }}
+          path: |
+            out/reel_*.mp4
+            out/story_*.json
+          retention-days: 3
+          if-no-files-found: ignore
