@@ -2,7 +2,7 @@ import os, datetime, sys, subprocess, urllib.request, urllib.parse, json
 
 # เพจ คนเดินป่า - Page ID ตัวจริงจาก Access Token Debugger
 PAGE_ID = os.environ.get("FACEBOOK_PAGE_ID", "1442748642259773")
-TOKEN = os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN", "")
+TOKEN = os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN", "EAAP3yfYwFHEBSZCTLKKFM1pgYmK3K1WAy6YXngZC5gZB5BurUDaYSPM7kHfQgzQEc8zfdopV6jxiqYZAlTMZBO2riOUseCYEpKb31flB8Ni7zaeZC4XGfw6aHwDUZAm19cWwh3blZAH4AfDKIclzxlTLToFNtZCjjuZAFSGDbIl2NxpNFAQ8i276UUzXgZCAXZC8LV0HokWp")
 DRY_RUN = os.environ.get("DRY_RUN", "0") == "1" or "--dry-run" in sys.argv
 
 STORIES = [
