@@ -1,17 +1,38 @@
-"""ตัวคุมหลัก: เรื่อง -> วีดีโอ Veo -> โพสต์ทุกแพลตฟอร์ม
+"""ตัวคุมหลัก: เรื่อง -> วีดีโอ (Gemini Omni Flash) -> โพสต์ทุกแพลตฟอร์ม
 
 ENV:
   SLOT      noon | evening       (รอบของวัน)
   MODE      story_only | video_only | post   (ค่าเริ่มต้น post)
   PLATFORMS facebook,youtube,tiktok (ค่าเริ่มต้นทั้งหมด; ข้ามอัตโนมัติถ้าไม่มี secret)
 """
-import os, sys, json, traceback
-from story import make_story, build_caption
-from video import build_video
-import posters
+import os, sys, json, subprocess, traceback
 
 SLOT = os.environ.get("SLOT", "noon")
 MODE = os.environ.get("MODE", "post")
+
+
+def _ensure_raqm():
+    """ให้ Pillow จัดวางสระ/วรรณยุกต์ไทยถูกต้อง (ต้องมี libraqm) แล้วรันตัวเองใหม่หนึ่งรอบ"""
+    if MODE == "story_only" or os.environ.get("_RAQM_TRIED"):
+        return
+    try:
+        from PIL import features
+        if features.check("raqm"):
+            return
+        os.environ["_RAQM_TRIED"] = "1"
+        subprocess.run(["sudo", "apt-get", "install", "-y", "-qq", "libraqm0", "libfribidi0"],
+                       check=False)
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+    except Exception:
+        pass
+
+
+_ensure_raqm()
+
+from story import make_story, build_caption  # noqa: E402
+from video import build_video  # noqa: E402
+import posters  # noqa: E402
+
 PLATFORMS = [p.strip() for p in os.environ.get("PLATFORMS", "facebook,youtube,tiktok").split(",")]
 OUT = "out"
 
@@ -32,7 +53,7 @@ def main():
         json.dump(story, f, ensure_ascii=False, indent=2)
     print(caption, flush=True)
     if MODE == "story_only":
-        print("MODE=story_only: ไม่สร้างวีดีโอ (ไม่เสียค่า Veo)")
+        print("MODE=story_only: ไม่สร้างวีดีโอ (ไม่เสียค่าวีดีโอ)")
         return
 
     path = build_video(story, OUT, f"reel_{SLOT}")

@@ -3,7 +3,7 @@ import os, json, datetime
 from google import genai
 from google.genai import types
 
-TEXT_MODEL = os.environ.get("TEXT_MODEL", "gemini-2.5-flash")
+TEXT_MODEL = os.environ.get("TEXT_MODEL", "gemini-3.8-flash")
 
 TOPICS = [
     "เสียงเรียกชื่อกลางป่าตอนตี 2",
