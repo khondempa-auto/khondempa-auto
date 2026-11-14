@@ -8,7 +8,7 @@ on:
       mode:
         description: 'story_only = ทดสอบเรื่อง (ฟรี) | video_only = สร้างคลิปไม่โพสต์ | post = โพสต์จริง'
         type: choice
-        default: story_only
+        default: video_only
         options: [story_only, video_only, post]
       slot:
         description: 'รอบ'
